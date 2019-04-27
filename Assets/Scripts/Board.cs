@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 
 public enum PieceType {
     MOUSE = 0,
@@ -12,11 +13,35 @@ public class Piece {
     public int id;
 }
 
+public class Location {
+    public int x, y;
+    public Location(int x, int y) {
+        this.x = x;
+        this.y = y;
+    }
+}
+
 public class Board
 {
     public int w = 24;
     public int h = 24;
     public Piece[] board;
+
+    public Board(Board b) {
+        w = b.w;
+        h = b.h;
+        board = new Piece[w * h];
+        for (int i = 0; i < b.board.Length; i++)
+        {
+            Piece p = new Piece();
+            if (b.board[i] != null)
+            {
+                p.id = b.board[i].id;
+                p.t = b.board[i].t;
+                board[i] = p;
+            }
+        }
+    }
 
     public Board(int w, int h)
     {
@@ -33,6 +58,78 @@ public class Board
         return board[x + y * w];
     }
 
+    public ArrayList possibleMoves(int x, int y) {
+        ArrayList result = new ArrayList();
+        int i, j;
+        for (i = x + 1; i < w && getPiece(i, y) == null; i++) {
+            result.Add(new Location(i, y));
+        }
+        for (i = x - 1; i >= 0 && getPiece(i, y) == null; i--)
+        {
+            result.Add(new Location(i, y));
+        }
+        for (j = y + 1; j < w && getPiece(x, j) == null; j++)
+        {
+            result.Add(new Location(x, j));
+        }
+        for (j = y - 1; j >= 0 && getPiece(x, j) == null; j--)
+        {
+            result.Add(new Location(x, j));
+        }
+        return result;
+    }
+
+    public bool isValidMove(Location src, Location dst) {
+        ArrayList moves = possibleMoves(src.x, src.y);
+        for (int i = 0; i < moves.Count; i++) {
+            Location m = (Location)moves[i];
+            if (dst.x == m.x && dst.y == m.y)
+                return true;
+        }
+        return false;
+    }
+
+    public void move(Location src, Location dst) {
+        Piece p = getPiece(src.x, src.y);
+        setPiece(dst.x, dst.y, p);
+        setPiece(src.x, src.y, null);
+    }
+
+    public void removeKilled(PieceType defender) {
+        UnityEngine.Debug.Log("defender = " + defender.ToString());
+        for (int i = 0; i < w; i++) {
+            for (int j = 0; j < h; j++) {
+                if (getTypeAt(i, j) == defender) {
+                    UnityEngine.Debug.Log("killing");
+                    if (isSurrounded(i, j))
+                        setPiece(i, j, null);
+                }
+            }
+        }
+    }
+
+    public bool isSurrounded(int i, int j) {
+        PieceType t;
+        t = getTypeAt(i, j);
+        if (isEnemy(getTypeAt(i - 1, j), t) && isEnemy(getTypeAt(i + 1, j), t))
+            return true;
+        if (isEnemy(getTypeAt(i, j-1), t) && isEnemy(getTypeAt(i, j+1), t))
+            return true;
+        return false;
+    }
+
+    public PieceType getTypeAt(int i, int j) {
+        if (i < 0 || i >= w || j < 0 || j >= h)
+            return PieceType.WALL;
+        Piece p = getPiece(i, j);
+        return (p == null) ? PieceType.EMPTY : p.t;
+    }
+
+    public bool isEnemy(PieceType p1, PieceType p2) {
+        return ((p1 == PieceType.MOUSE && p2 == PieceType.GOBLIN) ||
+                (p1 == PieceType.GOBLIN && p2 == PieceType.MOUSE));
+    }
+
     public void Log() {
         UnityEngine.Debug.Log("board width / height: " + w + ", " + h);
         for (int x = 0; x < w; x++) {
@@ -46,7 +143,6 @@ public class Board
                     {
                         case PieceType.WALL:
                             output = "w  ";
-                            UnityEngine.Debug.Log("wall");
                             break;
                         case PieceType.GOBLIN:
                             output = "g" + p.id;
