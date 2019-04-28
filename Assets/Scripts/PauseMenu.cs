@@ -4,6 +4,8 @@ using UnityEngine;
 
 public class PauseMenu : MonoBehaviour
 {
+    public Transform helpMenu;
+
     public void HideMenu() {
         this.gameObject.SetActive(false);
     }
@@ -22,5 +24,6 @@ public class PauseMenu : MonoBehaviour
 
     public void ShowAbout() {
         HideMenu();
+        helpMenu.gameObject.SetActive(true);
     }
 }

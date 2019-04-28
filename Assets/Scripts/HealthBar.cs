@@ -8,9 +8,9 @@ public class HealthBar : MonoBehaviour {
     RectTransform rect;
     RectTransform parentRect;
     float maxWidth = 1.0f;
-    int maxHealth;
+    float maxHealth;
     float currentHealth = 0;
-    int targetHealth = 0;
+    float targetHealth = 0;
     float healRate = 5.0f;
     float damageRate = 10.0f;
 	// Use this for initialization
@@ -25,8 +25,8 @@ public class HealthBar : MonoBehaviour {
         if (game != null)
         {
             currentHealth = game.getWizardHealth(piece);
-            maxHealth = (int)currentHealth;
-            targetHealth = (int)currentHealth;
+            maxHealth = currentHealth;
+            targetHealth = currentHealth;
         }
     }
 

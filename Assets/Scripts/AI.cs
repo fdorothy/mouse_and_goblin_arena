@@ -48,7 +48,8 @@ public class AI
                 Board b2 = applyMove(b, opponentMove, enemyType);
 
                 Move nextBestMove = bestMove(b2, type, 0);
-                myScore = myScore + (nextBestMove.rating - myScore) / 2.0f;
+                if (nextBestMove != null)
+                    myScore = (nextBestMove.rating + myScore) / 2.0f;
             }
 
             if (myScore > bestScore) {
@@ -56,11 +57,14 @@ public class AI
                 result = m;
             }
         }
-        result.rating = bestScore;
+        if (result != null)
+            result.rating = bestScore;
         return result;
     }
 
     Board applyMove(Board board, Move move, PieceType type) {
+        if (move == null)
+            return board;
         PieceType enemyType = type == PieceType.MOUSE ? PieceType.GOBLIN : PieceType.MOUSE;
         Board b = new Board(board);
         if (move.summon)

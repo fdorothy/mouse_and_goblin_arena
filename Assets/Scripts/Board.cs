@@ -12,7 +12,7 @@ public enum PieceType {
 public class Piece {
     public PieceType t;
     public bool king = false;
-    public int health = 1;
+    public float health = 1;
     public int id;
 }
 
@@ -120,7 +120,7 @@ public class Board
     public void summon(Location src, Location dst)
     {
         Piece p = getPiece(src.x, src.y);
-        p.health -= 1;
+        p.health -= 0.5f;
         Piece minion = new Piece();
         minion.health = 1;
         minion.id = lastId++;

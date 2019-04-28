@@ -115,11 +115,28 @@ public class Game : MonoBehaviour
             pushBoard();
             AI ai = new AI();
             Move m = ai.bestMove(board, PieceType.GOBLIN);
-            if (m != null)
+
+            if (m.summon)
             {
-                board.move(m.src, m.dst);
+                setPhaseText("SUMMONING...");
+                yield return new WaitForSeconds(0.5f);
+                pushBoard();
+                board.summon(m.src, m.dst);
+                yield return new WaitForSeconds(0.5f);
                 board.attack(PieceType.GOBLIN);
                 board.removeKilled(PieceType.MOUSE);
+                ClearPaths();
+            }
+            else
+            {
+                setPhaseText("MOVING...");
+                yield return new WaitForSeconds(0.5f);
+                pushBoard();
+                board.move(m.src, m.dst);
+                yield return new WaitForSeconds(0.5f);
+                board.attack(PieceType.GOBLIN);
+                board.removeKilled(PieceType.MOUSE);
+                ClearPaths();
             }
 
             // animate movement
@@ -397,7 +414,7 @@ public class Game : MonoBehaviour
         return new Location(-1, -1);
     }
 
-    public int getWizardHealth(PieceType type) {
+    public float getWizardHealth(PieceType type) {
         if (board == null)
             return -1;
         for (int i = 0; i < board.w; i++) {
