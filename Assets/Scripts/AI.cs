@@ -5,6 +5,7 @@ using UnityEngine;
 public class Move
 {
     public Location src, dst;
+    public float rating;
     public Move(Location src, Location dst) {
         this.src = src;
         this.dst = dst;
@@ -26,7 +27,8 @@ public class AI
      * Finds the best move based on a scoring criteria
      * for the current board
      */
-    public Move bestMove(Board board, PieceType type) {
+    public Move bestMove(Board board, PieceType type, int maxDepth = 1) {
+        PieceType enemyType = (type == PieceType.GOBLIN ? PieceType.MOUSE : PieceType.GOBLIN);
         List<Move> moves = possibleMoves(board, type);
 
         float bestScore = -10000.0f;
@@ -37,8 +39,17 @@ public class AI
             Board b = new Board(board);
             b.move(m.src, m.dst);
             b.attack(type);
-            b.removeKilled(type == PieceType.GOBLIN ? PieceType.MOUSE : PieceType.GOBLIN);
-            myScore = getScore(b, type) + Random.Range(-0.5f, 0.5f);
+            b.removeKilled(enemyType);
+            myScore = getScore(b, type) + Random.Range(-0.25f, 0.25f);
+
+            // walk the tree to find the best score
+            if (maxDepth > 0)
+            {
+                Move childMove = bestMove(b, enemyType, maxDepth - 1);
+                if (childMove.rating > myScore)
+                    myScore = myScore + (childMove.rating - myScore) / 2.0f;
+            }
+
             if (myScore > bestScore) {
                 bestScore = myScore;
                 result = m;

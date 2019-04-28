@@ -64,11 +64,13 @@ public class Game : MonoBehaviour
 
     private void Update()
     {
-        if (srcLocation == null && Input.GetMouseButtonDown(0)) {
+        if (srcLocation == null && Input.GetMouseButtonDown(0))
+        {
             Vector3 mp = Input.mousePosition;
             mp = Camera.main.ScreenToWorldPoint(mp);
             Location l = toLocation(mp);
-            if (l.x != -1) {
+            if (l.x != -1)
+            {
                 Piece p = board.getPiece(l.x, l.y);
                 if (p != null && p.t == PieceType.MOUSE)
                 {
@@ -77,13 +79,14 @@ public class Game : MonoBehaviour
                 }
             }
         }
-
-        else if (srcLocation != null && Input.GetMouseButtonDown(0)) {
+        else if (srcLocation != null && Input.GetMouseButtonDown(0))
+        {
             Vector3 mp = Input.mousePosition;
             mp = Camera.main.ScreenToWorldPoint(mp);
             Location dst = toLocation(mp);
 
-            if (board.isValidMove(srcLocation, dst)) {
+            if (board.isValidMove(srcLocation, dst))
+            {
                 pushBoard();
                 board.move(srcLocation, dst);
                 board.attack(PieceType.MOUSE);
@@ -104,6 +107,20 @@ public class Game : MonoBehaviour
                     board.removeKilled(PieceType.MOUSE);
                     CreatePieces();
                 }
+            } else {
+                srcLocation = null;
+                ClearPaths();
+            }
+        }
+        else if (srcLocation != null && (Input.GetKey(KeyCode.Escape) || Input.GetMouseButtonDown(1)))
+        {
+            srcLocation = null;
+            ClearPaths();
+        }
+        else
+        {
+            if (Input.GetKey(KeyCode.Escape)) {
+                // open the pause menu?
             }
         }
     }
