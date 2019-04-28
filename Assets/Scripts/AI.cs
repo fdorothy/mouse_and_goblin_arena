@@ -27,7 +27,7 @@ public class AI
      * Finds the best move based on a scoring criteria
      * for the current board
      */
-    public Move bestMove(Board board, PieceType type, int maxDepth = 1) {
+    public Move bestMove(Board board, PieceType type, int maxDepth = 0) {
         PieceType enemyType = (type == PieceType.GOBLIN ? PieceType.MOUSE : PieceType.GOBLIN);
         List<Move> moves = possibleMoves(board, type);
 

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections;
+using System.Collections.Generic;
 
 public enum PieceType {
     MOUSE = 0,
@@ -23,11 +24,23 @@ public class Location {
     }
 }
 
+public enum ActionType {
+    ATTACK, KILL, MOVE, SUMMON
+}
+
+public class Action {
+    public ActionType t;
+    public Location src, dst;
+    public int id;
+}
+
 public class Board
 {
     public int w = 24;
     public int h = 24;
     public Piece[] board;
+    public List<Action> actions;
+    public bool recordActions = false;
 
     public Board(Board b) {
         w = b.w;
@@ -97,6 +110,9 @@ public class Board
         Piece p = getPiece(src.x, src.y);
         setPiece(dst.x, dst.y, p);
         setPiece(src.x, src.y, null);
+        if (recordActions) {
+            recordAction(ActionType.MOVE, p.id, src, dst);
+        }
     }
 
     public void removeKilled(PieceType defender) {
@@ -105,7 +121,12 @@ public class Board
                 if (getTypeAt(i, j) == defender) {
                     Piece p = getPiece(i, j);
                     if (p.health <= 0)
+                    {
                         setPiece(i, j, null);
+                        if (recordActions) {
+                            recordAction(ActionType.KILL, p.id, new Location(i, j), null);
+                        }
+                    }
                 }
             }
         }
@@ -134,6 +155,11 @@ public class Board
         if (p != null) {
             p.health -= 1;
         }
+
+        if (recordActions)
+        {
+            recordAction(ActionType.ATTACK, p.id, src, dst);
+        }
     }
 
     public Location getNearbyEnemy(int i, int j, PieceType attackers) {
@@ -155,14 +181,26 @@ public class Board
         return null;
     }
 
-    public bool isSurrounded(int i, int j) {
-        PieceType t;
-        t = getTypeAt(i, j);
-        if (isEnemy(getTypeAt(i - 1, j), t) && isEnemy(getTypeAt(i + 1, j), t))
-            return true;
-        if (isEnemy(getTypeAt(i, j-1), t) && isEnemy(getTypeAt(i, j+1), t))
-            return true;
-        return false;
+    public PieceType checkVictory() {
+        bool hasMouseKing = false;
+        bool hasGoblinKing = false;
+        for (int i = 0; i < w; i++) {
+            for (int j = 0; j < h; j++) {
+                Piece p = getPiece(i, j);
+                if (p != null)
+                {
+                    if (p.t == PieceType.MOUSE && p.king && p.health > 0)
+                        hasMouseKing = true;
+                    if (p.t == PieceType.GOBLIN && p.king && p.health > 0)
+                        hasGoblinKing = true;
+                }
+            }
+        }
+        if (hasMouseKing && !hasGoblinKing)
+            return PieceType.MOUSE;
+        if (!hasMouseKing && hasGoblinKing)
+            return PieceType.GOBLIN;
+        return PieceType.EMPTY;
     }
 
     public PieceType getTypeAt(int i, int j) {
@@ -204,5 +242,16 @@ public class Board
             }
             UnityEngine.Debug.Log(line);
         }
+    }
+
+    public void recordAction(ActionType t, int id, Location src, Location dst) {
+        Action a = new Action();
+        a.t = t;
+        a.id = id;
+        a.src = src;
+        a.dst = dst;
+        if (actions == null)
+             actions = new List<Action>();
+        actions.Add(a);
     }
 }

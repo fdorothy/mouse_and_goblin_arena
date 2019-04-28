@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Tilemaps;
+using DG.Tweening;
 
 public class Game : MonoBehaviour
 {
@@ -33,19 +34,105 @@ public class Game : MonoBehaviour
     protected Transform paths;
     protected Transform piecesTransform;
 
+    public GameObject pausePanel;
+    public GameObject winPanel;
+    public GameObject losePanel;
+    protected Coroutine gameLoop;
+
     void Start()
     {
         paths = transform.Find("paths");
         piecesTransform = transform.Find("pieces");
+        pausePanel = GameObject.Find("PausePanel");
+        pausePanel.gameObject.SetActive(false);
+        winPanel = GameObject.Find("WinPanel");
+        winPanel.gameObject.SetActive(false);
+        losePanel = GameObject.Find("LosePanel");
+        losePanel.gameObject.SetActive(false);
         LoadFromTiled();
         CreatePieces();
+        gameLoop = StartCoroutine(GameLoop());
     }
 
     IEnumerator GameLoop() {
         while (true) {
-            //yield return new WaitUntil(() => HasInput());
-            //Board newBoard = UpdatePieces(moveX, moveY, PieceType.MOUSE);
+            // wait for user input from player 1
+            yield return new WaitUntil(() =>
+            {
+                return srcLocation != null && dstLocation != null;
+            });
+
+            // apply player 1 movement to the board
+            pushBoard();
+            board.move(srcLocation, dstLocation);
+            board.attack(PieceType.MOUSE);
+            board.removeKilled(PieceType.GOBLIN);
+            ClearPaths();
+            srcLocation = null;
+            dstLocation = null;
+
+            // animate movement
+            if (board.actions != null)
+            {
+                IEnumerator playActions = PlayTurnActions(board.actions);
+                do
+                {
+                    playActions.MoveNext();
+                    yield return playActions.Current;
+                } while (playActions.Current != null);
+            }
+
+            // check victory
+            CheckVictory();
+
+            // wait for input from player 2 ( computer )
+            pushBoard();
+            AI ai = new AI();
+            Move m = ai.bestMove(board, PieceType.GOBLIN);
+            if (m != null)
+            {
+                board.move(m.src, m.dst);
+                board.attack(PieceType.GOBLIN);
+                board.removeKilled(PieceType.MOUSE);
+            }
+
+            // animate movement
+            if (board.actions != null)
+            {
+                IEnumerator playActions = PlayTurnActions(board.actions);
+                do
+                {
+                    playActions.MoveNext();
+                    yield return playActions.Current;
+                } while (playActions.Current != null);
+            }
+
+            // check victory
+            CheckVictory();
         }
+    }
+
+    IEnumerator PlayTurnActions(List<Action> actions) {
+        foreach (Action a in actions) {
+            Transform t = pieces[a.id].transform;
+            switch (a.t) {
+                case ActionType.MOVE:
+                    Vector3 p = cellBottomPos(a.dst.x, a.dst.y);
+                    yield return t.DOMove(p, 0.5f).WaitForCompletion();
+                    break;
+                case ActionType.KILL:
+                    //yield return t.DOShakePosition(0.5f, 0.5f, 30, 90).WaitForCompletion();
+                    Destroy(t.gameObject);
+                    break;
+                case ActionType.ATTACK:
+                    yield return t.DOShakePosition(0.5f, 0.5f, 30, 90).WaitForCompletion();
+                    break;
+                case ActionType.SUMMON:
+                    break;
+                default: break;
+            }
+        }
+        yield return null;
     }
 
     void UpdatePieces() {
@@ -66,9 +153,7 @@ public class Game : MonoBehaviour
     {
         if (srcLocation == null && Input.GetMouseButtonDown(0))
         {
-            Vector3 mp = Input.mousePosition;
-            mp = Camera.main.ScreenToWorldPoint(mp);
-            Location l = toLocation(mp);
+            Location l = mouseLocation();
             if (l.x != -1)
             {
                 Piece p = board.getPiece(l.x, l.y);
@@ -81,33 +166,12 @@ public class Game : MonoBehaviour
         }
         else if (srcLocation != null && Input.GetMouseButtonDown(0))
         {
-            Vector3 mp = Input.mousePosition;
-            mp = Camera.main.ScreenToWorldPoint(mp);
-            Location dst = toLocation(mp);
-
+            Location dst = mouseLocation();
             if (board.isValidMove(srcLocation, dst))
             {
-                pushBoard();
-                board.move(srcLocation, dst);
-                board.attack(PieceType.MOUSE);
-                board.removeKilled(PieceType.GOBLIN);
-                //UpdatePieces();
-                CreatePieces();
-                ClearPaths();
-                srcLocation = null;
-
-                // do the goblin stuff
-                pushBoard();
-                AI ai = new AI();
-                Move m = ai.bestMove(board, PieceType.GOBLIN);
-                if (m != null)
-                {
-                    board.move(m.src, m.dst);
-                    board.attack(PieceType.GOBLIN);
-                    board.removeKilled(PieceType.MOUSE);
-                    CreatePieces();
-                }
-            } else {
+                dstLocation = dst;
+            }
+            else {
                 srcLocation = null;
                 ClearPaths();
             }
@@ -119,14 +183,35 @@ public class Game : MonoBehaviour
         }
         else
         {
-            if (Input.GetKey(KeyCode.Escape)) {
-                // open the pause menu?
+            if (Input.GetKeyDown(KeyCode.Escape)) {
+                if (pausePanel.gameObject.activeSelf)
+                    pausePanel.SetActive(false);
+                else
+                    pausePanel.SetActive(true);
+            }
+        }
+    }
+
+    Location mouseLocation() {
+        Vector3 mp = Input.mousePosition;
+        mp = Camera.main.ScreenToWorldPoint(mp);
+        return toLocation(mp);
+    }
+
+    public void CheckVictory() {
+        PieceType victor = board.checkVictory();
+        if (victor != PieceType.EMPTY) {
+            if (victor == PieceType.MOUSE) {
+                winPanel.SetActive(true);
+            } else if (victor == PieceType.GOBLIN) {
+                losePanel.SetActive(true);
             }
         }
     }
 
     Board pushBoard() {
         board = new Board(board);
+        board.recordActions = true;
         return board;
     }
 
