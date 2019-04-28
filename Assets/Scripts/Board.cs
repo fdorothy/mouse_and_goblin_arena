@@ -11,6 +11,7 @@ public enum PieceType {
 public class Piece {
     public PieceType t;
     public bool king = false;
+    public int health = 1;
     public int id;
 }
 
@@ -40,6 +41,7 @@ public class Board
                 p.id = b.board[i].id;
                 p.t = b.board[i].t;
                 p.king = b.board[i].king;
+                p.health = b.board[i].health;
                 board[i] = p;
             }
         }
@@ -101,11 +103,56 @@ public class Board
         for (int i = 0; i < w; i++) {
             for (int j = 0; j < h; j++) {
                 if (getTypeAt(i, j) == defender) {
-                    if (isSurrounded(i, j))
+                    Piece p = getPiece(i, j);
+                    if (p.health <= 0)
                         setPiece(i, j, null);
                 }
             }
         }
+    }
+
+    public void attack(PieceType attackers)
+    {
+        for (int i = 0; i < w; i++)
+        {
+            for (int j = 0; j < h; j++)
+            {
+                if (getTypeAt(i, j) == attackers)
+                {
+                    Location l = getNearbyEnemy(i, j, attackers);
+                    if (l != null)
+                    {
+                        attack(new Location(i, j), l);
+                    }
+                }
+            }
+        }
+    }
+
+    public void attack(Location src, Location dst) {
+        Piece p = getPiece(dst.x, dst.y);
+        if (p != null) {
+            p.health -= 1;
+        }
+    }
+
+    public Location getNearbyEnemy(int i, int j, PieceType attackers) {
+        if (isEnemy(getTypeAt(i-1, j), attackers)) {
+            return new Location(i - 1, j);
+        }
+        if (isEnemy(getTypeAt(i + 1, j), attackers))
+        {
+            return new Location(i + 1, j);
+        }
+        if (isEnemy(getTypeAt(i, j-1), attackers))
+        {
+            return new Location(i, j-1);
+        }
+        if (isEnemy(getTypeAt(i, j+1), attackers))
+        {
+            return new Location(i, j+1);
+        }
+        return null;
     }
 
     public bool isSurrounded(int i, int j) {

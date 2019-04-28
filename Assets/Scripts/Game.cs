@@ -86,6 +86,7 @@ public class Game : MonoBehaviour
             if (board.isValidMove(srcLocation, dst)) {
                 pushBoard();
                 board.move(srcLocation, dst);
+                board.attack(PieceType.MOUSE);
                 board.removeKilled(PieceType.GOBLIN);
                 //UpdatePieces();
                 CreatePieces();
@@ -152,6 +153,7 @@ public class Game : MonoBehaviour
                     piece.t = PieceType.MOUSE;
                     piece.id = id;
                     piece.king = true;
+                    piece.health = 10;
                     board.setPiece(i, j, piece);
                     id++;
                 }
@@ -161,6 +163,7 @@ public class Game : MonoBehaviour
                     piece.t = PieceType.GOBLIN;
                     piece.id = id;
                     piece.king = true;
+                    piece.health = 10;
                     board.setPiece(i, j, piece);
                     id++;
                 }
