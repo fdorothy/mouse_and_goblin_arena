@@ -38,6 +38,7 @@ public class Game : MonoBehaviour
     public GameObject winPanel;
     public GameObject losePanel;
     protected Coroutine gameLoop;
+    public UnityEngine.UI.Text phaseText;
 
     void Start()
     {
@@ -57,14 +58,23 @@ public class Game : MonoBehaviour
     IEnumerator GameLoop() {
         while (true) {
             // wait for user input from player 1
+            setPhaseText("MOVE A PIECE");
             yield return new WaitUntil(() =>
             {
                 return srcLocation != null && dstLocation != null;
             });
+            Location src = srcLocation;
+            Location dst = dstLocation;
+            ClearPaths();
+            srcLocation = null;
+            dstLocation = null;
 
             // apply player 1 movement to the board
+            setPhaseText("MOVING...");
+            yield return new WaitForSeconds(0.5f);
             pushBoard();
-            board.move(srcLocation, dstLocation);
+            board.move(src, dst);
+            yield return new WaitForSeconds(0.5f);
             board.attack(PieceType.MOUSE);
             board.removeKilled(PieceType.GOBLIN);
             ClearPaths();
@@ -86,6 +96,8 @@ public class Game : MonoBehaviour
             CheckVictory();
 
             // wait for input from player 2 ( computer )
+            setPhaseText("THINKING...");
+            yield return new WaitForSeconds(0.5f);
             pushBoard();
             AI ai = new AI();
             Move m = ai.bestMove(board, PieceType.GOBLIN);
@@ -97,6 +109,8 @@ public class Game : MonoBehaviour
             }
 
             // animate movement
+            setPhaseText("MOVING...");
+            yield return new WaitForSeconds(0.5f);
             if (board.actions != null)
             {
                 IEnumerator playActions = PlayTurnActions(board.actions);
@@ -110,6 +124,10 @@ public class Game : MonoBehaviour
             // check victory
             CheckVictory();
         }
+    }
+
+    public void setPhaseText(string text) {
+        phaseText.DOText(text, 0.25f);
     }
 
     IEnumerator PlayTurnActions(List<Action> actions) {
