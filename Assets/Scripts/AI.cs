@@ -6,6 +6,7 @@ public class Move
 {
     public Location src, dst;
     public float rating;
+    public bool summon = false;
     public Move(Location src, Location dst) {
         this.src = src;
         this.dst = dst;
@@ -36,10 +37,7 @@ public class AI
         Move result = null;
         for (int i = 0; i < moves.Count; i++) {
             Move m = moves[i];
-            Board b = new Board(board);
-            b.move(m.src, m.dst);
-            b.attack(type);
-            b.removeKilled(enemyType);
+            Board b = applyMove(board, m, type);
             myScore = getScore(b, type) + Random.Range(-0.25f, 0.25f);
 
             // walk the tree to find the best score
@@ -47,12 +45,9 @@ public class AI
             {
                 // apply the best move for the other player
                 Move opponentMove = bestMove(b, enemyType, 0);
-                Board b2 = new Board(b);
-                b2.move(opponentMove.src, opponentMove.dst);
-                b2.attack(type);
-                b2.removeKilled(enemyType);
+                Board b2 = applyMove(b, opponentMove, enemyType);
 
-                Move nextBestMove = bestMove(b2, type, maxDepth - 1);
+                Move nextBestMove = bestMove(b2, type, 0);
                 myScore = myScore + (nextBestMove.rating - myScore) / 2.0f;
             }
 
@@ -63,6 +58,18 @@ public class AI
         }
         result.rating = bestScore;
         return result;
+    }
+
+    Board applyMove(Board board, Move move, PieceType type) {
+        PieceType enemyType = type == PieceType.MOUSE ? PieceType.GOBLIN : PieceType.MOUSE;
+        Board b = new Board(board);
+        if (move.summon)
+            b.summon(move.src, move.dst);
+        else
+            b.move(move.src, move.dst);
+        b.attack(type);
+        b.removeKilled(enemyType);
+        return b;
     }
 
     /**
@@ -80,6 +87,17 @@ public class AI
             {
                 Location dst = (Location)moves[j];
                 result.Add(new Move(src, dst));
+            }
+
+            Piece p = b.getPiece(src.x, src.y);
+            if (p != null && p.king) {
+                for (int j = 0; j < moves.Count; j++)
+                {
+                    Location dst = (Location)moves[j];
+                    Move m = new Move(src, dst);
+                    m.summon = true;
+                    result.Add(m);
+                }
             }
         }
         return result;
