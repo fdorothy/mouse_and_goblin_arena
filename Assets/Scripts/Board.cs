@@ -10,6 +10,7 @@ public enum PieceType {
 
 public class Piece {
     public PieceType t;
+    public bool king = false;
     public int id;
 }
 
@@ -38,6 +39,7 @@ public class Board
             {
                 p.id = b.board[i].id;
                 p.t = b.board[i].t;
+                p.king = b.board[i].king;
                 board[i] = p;
             }
         }
@@ -96,11 +98,9 @@ public class Board
     }
 
     public void removeKilled(PieceType defender) {
-        UnityEngine.Debug.Log("defender = " + defender.ToString());
         for (int i = 0; i < w; i++) {
             for (int j = 0; j < h; j++) {
                 if (getTypeAt(i, j) == defender) {
-                    UnityEngine.Debug.Log("killing");
                     if (isSurrounded(i, j))
                         setPiece(i, j, null);
                 }

@@ -8,10 +8,14 @@ public class Game : MonoBehaviour
     public Tilemap obstacles;
     public Tilemap mice;
     public Tilemap goblins;
+    public Tilemap mouseWizard;
+    public Tilemap goblinWizard;
     public Board board;
 
     public Transform mousePrefab;
     public Transform goblinPrefab;
+    public Transform mouseWizardPrefab;
+    public Transform goblinWizardPrefab;
     public Transform pathPrefab;
 
     public Transform selectionIcon;
@@ -64,7 +68,6 @@ public class Game : MonoBehaviour
             Vector3 mp = Input.mousePosition;
             mp = Camera.main.ScreenToWorldPoint(mp);
             Location l = toLocation(mp);
-            Debug.Log("saw a " + board.getTypeAt(l.x, l.y).ToString());
             if (l.x != -1) {
                 Piece p = board.getPiece(l.x, l.y);
                 if (p != null && p.t == PieceType.MOUSE)
@@ -144,11 +147,29 @@ public class Game : MonoBehaviour
                     piece.id = id;
                     board.setPiece(i, j, piece);
                     id++;
+                } else if (mouseWizard.HasTile(cell)) {
+                    Piece piece = new Piece();
+                    piece.t = PieceType.MOUSE;
+                    piece.id = id;
+                    piece.king = true;
+                    board.setPiece(i, j, piece);
+                    id++;
+                }
+                else if (goblinWizard.HasTile(cell))
+                {
+                    Piece piece = new Piece();
+                    piece.t = PieceType.GOBLIN;
+                    piece.id = id;
+                    piece.king = true;
+                    board.setPiece(i, j, piece);
+                    id++;
                 }
             }
         }
         mice.gameObject.SetActive(false);
         goblins.gameObject.SetActive(false);
+        mouseWizard.gameObject.SetActive(false);
+        goblinWizard.gameObject.SetActive(false);
     }
 
     void ClearPieces()
@@ -172,12 +193,12 @@ public class Game : MonoBehaviour
                 {
                     if (p.t == PieceType.MOUSE)
                     {
-                        pieces[p.id] = createPiece(mousePrefab, i, j);
+                        pieces[p.id] = createPiece(p.king ? mouseWizardPrefab : mousePrefab, i, j);
                         pieces[p.id].parent = piecesTransform;
                     }
                     else if (p.t == PieceType.GOBLIN)
                     {
-                        pieces[p.id] = createPiece(goblinPrefab, i, j);
+                        pieces[p.id] = createPiece(p.king ? goblinWizardPrefab : goblinPrefab, i, j);
                         pieces[p.id].parent = piecesTransform;
                     }
                 }
