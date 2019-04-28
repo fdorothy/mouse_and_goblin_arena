@@ -40,6 +40,8 @@ public class Game : MonoBehaviour
     protected Coroutine gameLoop;
     public UnityEngine.UI.Text phaseText;
 
+    protected bool summoning = false;
+
     void Start()
     {
         paths = transform.Find("paths");
@@ -65,21 +67,33 @@ public class Game : MonoBehaviour
             });
             Location src = srcLocation;
             Location dst = dstLocation;
+            bool isSummoning = summoning;
             ClearPaths();
-            srcLocation = null;
-            dstLocation = null;
 
             // apply player 1 movement to the board
-            setPhaseText("MOVING...");
-            yield return new WaitForSeconds(0.5f);
-            pushBoard();
-            board.move(src, dst);
-            yield return new WaitForSeconds(0.5f);
-            board.attack(PieceType.MOUSE);
-            board.removeKilled(PieceType.GOBLIN);
-            ClearPaths();
-            srcLocation = null;
-            dstLocation = null;
+
+            if (isSummoning)
+            {
+                setPhaseText("SUMMONING...");
+                yield return new WaitForSeconds(0.5f);
+                pushBoard();
+                board.summon(src, dst);
+                yield return new WaitForSeconds(0.5f);
+                board.attack(PieceType.MOUSE);
+                board.removeKilled(PieceType.GOBLIN);
+                ClearPaths();
+            }
+            else
+            {
+                setPhaseText("MOVING...");
+                yield return new WaitForSeconds(0.5f);
+                pushBoard();
+                board.move(src, dst);
+                yield return new WaitForSeconds(0.5f);
+                board.attack(PieceType.MOUSE);
+                board.removeKilled(PieceType.GOBLIN);
+                ClearPaths();
+            }
 
             // animate movement
             if (board.actions != null)
@@ -132,7 +146,9 @@ public class Game : MonoBehaviour
 
     IEnumerator PlayTurnActions(List<Action> actions) {
         foreach (Action a in actions) {
-            Transform t = pieces[a.id].transform;
+            Transform t = null;
+            if (pieces.ContainsKey(a.id))
+                t = pieces[a.id].transform;
             switch (a.t) {
                 case ActionType.MOVE:
                     Vector3 p = cellBottomPos(a.dst.x, a.dst.y);
@@ -146,6 +162,11 @@ public class Game : MonoBehaviour
                     yield return t.DOShakePosition(0.5f, 0.5f, 30, 90).WaitForCompletion();
                     break;
                 case ActionType.SUMMON:
+                    PieceType sourceType = board.getTypeAt(a.src.x, a.src.y);
+                    Transform prefab = (sourceType == PieceType.MOUSE ? mousePrefab : goblinPrefab);
+                    pieces[a.id] = createPiece(prefab, a.dst.x, a.dst.y);
+                    pieces[a.id].parent = piecesTransform;
+                    yield return t.DOShakePosition(0.5f, 0.5f, 30, 90).WaitForCompletion();
                     break;
                 default: break;
             }
@@ -234,7 +255,6 @@ public class Game : MonoBehaviour
     }
 
     void FindPossibleMoves() {
-        ClearPaths();
         possibleMoves = board.possibleMoves(srcLocation.x, srcLocation.y);
         for (int i = 0; i < possibleMoves.Count; i++) {
             Location l = (Location)possibleMoves[i];
@@ -248,6 +268,9 @@ public class Game : MonoBehaviour
         {
             Destroy(child.gameObject);
         }
+        summoning = false;
+        srcLocation = null;
+        dstLocation = null;
     }
 
     void LoadFromTiled()
@@ -301,6 +324,7 @@ public class Game : MonoBehaviour
                 }
             }
         }
+        board.lastId = id;
         mice.gameObject.SetActive(false);
         goblins.gameObject.SetActive(false);
         mouseWizard.gameObject.SetActive(false);
@@ -385,6 +409,22 @@ public class Game : MonoBehaviour
             }
         }
         return 0;
+    }
+
+    public void OnSummon() {
+        summoning = true;
+        for (int i = 0; i < board.w; i++)
+        {
+            for (int j = 0; j < board.h; j++)
+            {
+                Piece p = board.getPiece(i, j);
+                if (p != null && p.king && p.t == PieceType.MOUSE)
+                {
+                    srcLocation = new Location(i, j);
+                }
+            }
+        }
+        FindPossibleMoves();
     }
 
 }

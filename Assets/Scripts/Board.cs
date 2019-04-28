@@ -38,6 +38,7 @@ public class Board
 {
     public int w = 24;
     public int h = 24;
+    public int lastId = 0;
     public Piece[] board;
     public List<Action> actions;
     public bool recordActions = false;
@@ -46,6 +47,7 @@ public class Board
         w = b.w;
         h = b.h;
         board = new Piece[w * h];
+        lastId = b.lastId;
         for (int i = 0; i < b.board.Length; i++)
         {
             Piece p = new Piece();
@@ -112,6 +114,21 @@ public class Board
         setPiece(src.x, src.y, null);
         if (recordActions) {
             recordAction(ActionType.MOVE, p.id, src, dst);
+        }
+    }
+
+    public void summon(Location src, Location dst)
+    {
+        Piece p = getPiece(src.x, src.y);
+        p.health -= 1;
+        Piece minion = new Piece();
+        minion.health = 1;
+        minion.id = lastId++;
+        minion.t = p.t;
+        setPiece(dst.x, dst.y, minion);
+        if (recordActions)
+        {
+            recordAction(ActionType.SUMMON, minion.id, src, dst);
         }
     }
 
