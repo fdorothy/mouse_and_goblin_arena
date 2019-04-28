@@ -92,6 +92,18 @@ public class Game : MonoBehaviour
                 CreatePieces();
                 ClearPaths();
                 srcLocation = null;
+
+                // do the goblin stuff
+                pushBoard();
+                AI ai = new AI();
+                Move m = ai.bestMove(board, PieceType.GOBLIN);
+                if (m != null)
+                {
+                    board.move(m.src, m.dst);
+                    board.attack(PieceType.GOBLIN);
+                    board.removeKilled(PieceType.MOUSE);
+                    CreatePieces();
+                }
             }
         }
     }
@@ -239,6 +251,20 @@ public class Game : MonoBehaviour
             index.y >= 0 && index.y < obstacles.size.y)
             return new Location(index.x, index.y);
         return new Location(-1, -1);
+    }
+
+    public int getWizardHealth(PieceType type) {
+        if (board == null)
+            return -1;
+        for (int i = 0; i < board.w; i++) {
+            for (int j = 0; j < board.h; j++) {
+                Piece p = board.getPiece(i, j);
+                if (p != null && p.king && p.t == type) {
+                    return p.health;
+                }
+            }
+        }
+        return 0;
     }
 
 }

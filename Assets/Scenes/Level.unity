@@ -161,6 +161,7 @@ GameObject:
   - component: {fileID: 47289068}
   - component: {fileID: 47289070}
   - component: {fileID: 47289069}
+  - component: {fileID: 47289071}
   m_Layer: 5
   m_Name: health
   m_TagString: Untagged
@@ -184,9 +185,9 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: 0, y: 0}
+  m_AnchoredPosition: {x: 1.9986267, y: 0.000034332275}
   m_SizeDelta: {x: -4, y: -4}
-  m_Pivot: {x: 0.5, y: 0.5}
+  m_Pivot: {x: 0, y: 0.5}
 --- !u!114 &47289069
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -224,6 +225,20 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 47289067}
   m_CullTransparentMesh: 0
+--- !u!114 &47289071
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 47289067}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: cb22d15cbe8fc4bfab5cd2374501ac61, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  game: {fileID: 668397956}
+  piece: 0
 --- !u!1839735485 &52415632 stripped
 Tilemap:
   m_CorrespondingSourceObject: {fileID: 2816993605376620741, guid: 131ad48d5a7514bfabed04f3282fef05,
@@ -241,6 +256,7 @@ GameObject:
   - component: {fileID: 286629732}
   - component: {fileID: 286629734}
   - component: {fileID: 286629733}
+  - component: {fileID: 286629735}
   m_Layer: 5
   m_Name: health
   m_TagString: Untagged
@@ -264,9 +280,9 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: 0, y: 0}
+  m_AnchoredPosition: {x: -1.9999695, y: 0.000030517578}
   m_SizeDelta: {x: -4, y: -4}
-  m_Pivot: {x: 0.5, y: 0.5}
+  m_Pivot: {x: 1, y: 0.5}
 --- !u!114 &286629733
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -304,6 +320,20 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 286629731}
   m_CullTransparentMesh: 0
+--- !u!114 &286629735
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 286629731}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: cb22d15cbe8fc4bfab5cd2374501ac61, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  game: {fileID: 668397956}
+  piece: 1
 --- !u!1 &322690034
 GameObject:
   m_ObjectHideFlags: 0
@@ -406,7 +436,7 @@ MonoBehaviour:
     m_LineSpacing: 1
   m_Text: 'Blue Wizard Health
 
-    Computer'
+    Player 1'
 --- !u!222 &655785928
 CanvasRenderer:
   m_ObjectHideFlags: 0
@@ -7032,7 +7062,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
-  m_Color: {r: 0.3207547, g: 0.3207547, b: 0.3207547, a: 0.392}
+  m_Color: {r: 0.21568629, g: 0.21568629, b: 0.21568629, a: 1}
   m_RaycastTarget: 1
   m_OnCullStateChanged:
     m_PersistentCalls:
