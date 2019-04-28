@@ -27,7 +27,7 @@ public class AI
      * Finds the best move based on a scoring criteria
      * for the current board
      */
-    public Move bestMove(Board board, PieceType type, int maxDepth = 0) {
+    public Move bestMove(Board board, PieceType type, int maxDepth = 1) {
         PieceType enemyType = (type == PieceType.GOBLIN ? PieceType.MOUSE : PieceType.GOBLIN);
         List<Move> moves = possibleMoves(board, type);
 
@@ -45,9 +45,15 @@ public class AI
             // walk the tree to find the best score
             if (maxDepth > 0)
             {
-                Move childMove = bestMove(b, enemyType, maxDepth - 1);
-                if (childMove.rating > myScore)
-                    myScore = myScore + (childMove.rating - myScore) / 2.0f;
+                // apply the best move for the other player
+                Move opponentMove = bestMove(b, enemyType, 0);
+                Board b2 = new Board(b);
+                b2.move(opponentMove.src, opponentMove.dst);
+                b2.attack(type);
+                b2.removeKilled(enemyType);
+
+                Move nextBestMove = bestMove(b2, type, maxDepth - 1);
+                myScore = myScore + (nextBestMove.rating - myScore) / 2.0f;
             }
 
             if (myScore > bestScore) {
@@ -55,6 +61,7 @@ public class AI
                 result = m;
             }
         }
+        result.rating = bestScore;
         return result;
     }
 
