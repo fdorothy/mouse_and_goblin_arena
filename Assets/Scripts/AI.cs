@@ -17,9 +17,9 @@ public class Move
 
 public class AI
 {
-    const float FRIEND_PIECE_SCORE = 1.0f;
+    const float FRIEND_PIECE_SCORE = 1.1f;
     const float FOE_PIECE_SCORE = -1.0f;
-    const float FRIEND_WIZARD_HEALTH = 2.0f;
+    const float FRIEND_WIZARD_HEALTH = 2.1f;
     const float FOE_WIZARD_HEALTH = -2.0f;
 
     /**
@@ -33,13 +33,12 @@ public class AI
         float myScore = 0.0f;
         Move result = null;
         for (int i = 0; i < moves.Count; i++) {
-
             Move m = moves[i];
             Board b = new Board(board);
             b.move(m.src, m.dst);
             b.attack(type);
             b.removeKilled(type == PieceType.GOBLIN ? PieceType.MOUSE : PieceType.GOBLIN);
-            myScore = getScore(b, type);
+            myScore = getScore(b, type) + Random.Range(-0.5f, 0.5f);
             if (myScore > bestScore) {
                 bestScore = myScore;
                 result = m;
