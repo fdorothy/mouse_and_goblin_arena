@@ -25,43 +25,66 @@ public class AI
     const float FOE_WIZARD_HEALTH = -2.0f;
 
     /**
-     * Finds the best move based on a scoring criteria
-     * for the current board
+     * Uses alpha beta to calculate the best move
      */
-    public Move bestMove(Board board, PieceType type, int maxDepth = 1) {
-        PieceType enemyType = (type == PieceType.GOBLIN ? PieceType.MOUSE : PieceType.GOBLIN);
-        List<Move> moves = possibleMoves(board, type);
-
-        float bestScore = -10000.0f;
-        float myScore = 0.0f;
-        Move result = null;
-        for (int i = 0; i < moves.Count; i++) {
-            Move m = moves[i];
-            Board b = applyMove(board, m, type);
-            myScore = getScore(b, type) + Random.Range(-0.25f, 0.25f);
-
-            // walk the tree to find the best score
-            if (maxDepth > 0)
-            {
-                // apply the best move for the other player
-                Move opponentMove = bestMove(b, enemyType, 0);
-                Board b2 = applyMove(b, opponentMove, enemyType);
-
-                Move nextBestMove = bestMove(b2, type, 0);
-                if (nextBestMove != null)
-                    myScore = (nextBestMove.rating + myScore) / 2.0f;
-            }
-
-            if (myScore > bestScore) {
-                bestScore = myScore;
-                result = m;
+    public Move bestMoveAB(Board board, int depth, PieceType playerType) {
+        PieceType enemy = getEnemyType(playerType);
+        float value = float.NegativeInfinity;
+        List<Move> moves = possibleMoves(board, playerType);
+        Move bestMove = null;
+        foreach (Move move in moves)
+        {
+            Board child = applyMove(board, move, playerType);
+            float score = alphabeta(child, depth - 1, float.NegativeInfinity, float.PositiveInfinity, false, enemy);
+            if (score > value) {
+                bestMove = move;
+                value = score;
             }
         }
-        if (result != null)
-            result.rating = bestScore;
-        return result;
+        return bestMove;
     }
 
+    /**
+     * implementation of alpha-beta pruning minimax algo
+     * https://en.wikipedia.org/wiki/Alpha%E2%80%93beta_pruning
+     */
+    public float alphabeta(Board board, int depth, float alpha, float beta, bool maximizingPlayer, PieceType playerType) {
+        PieceType enemyType = getEnemyType(playerType);
+        if (depth == 0) {
+            // return score
+            return getScore(board, playerType);
+        }
+        if (maximizingPlayer) {
+            float value = float.NegativeInfinity;
+            List<Move> moves = possibleMoves(board, playerType);
+            foreach (Move move in moves) {
+                Board child = applyMove(board, move, playerType);
+                value = Mathf.Max(value, alphabeta(child, depth - 1, alpha, beta, false, enemyType));
+                alpha = Mathf.Max(alpha, value);
+                if (alpha >= beta)
+                    break;
+            }
+            return value;
+        } else {
+            float value = float.PositiveInfinity;
+            List<Move> moves = possibleMoves(board, playerType);
+            foreach (Move move in moves)
+            {
+                Board child = applyMove(board, move, playerType);
+                value = Mathf.Min(value, alphabeta(child, depth - 1, alpha, beta, true, enemyType));
+                beta = Mathf.Min(beta, value);
+                if (alpha >= beta)
+                    break;
+            }
+            return value;
+        }
+    }
+
+    PieceType getEnemyType(PieceType t)
+    {
+        return t == PieceType.MOUSE ? PieceType.GOBLIN : PieceType.MOUSE;
+    }
+ 
     Board applyMove(Board board, Move move, PieceType type) {
         if (move == null)
             return board;

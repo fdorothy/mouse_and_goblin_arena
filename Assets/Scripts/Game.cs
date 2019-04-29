@@ -114,7 +114,7 @@ public class Game : MonoBehaviour
             yield return new WaitForSeconds(0.5f);
             pushBoard();
             AI ai = new AI();
-            Move m = ai.bestMove(board, PieceType.GOBLIN);
+            Move m = ai.bestMoveAB(board, 2, PieceType.GOBLIN);
 
             if (m.summon)
             {
